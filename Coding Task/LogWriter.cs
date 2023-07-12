@@ -7,16 +7,16 @@
 
     public class LogWriter
     {
-        // cria um modelo de dados para armazenar as informações de log. Como ele só será usado nesta classe pode ser definido dentro dela como interno.
+        // Create a data model to store log information. Since it is used only in this class it can be defined as internal
+
         internal class LogEntry
         {
             public DateTime Date { get; set; }
-            public string UserLogin { get; set; }
             public string Message { get; set; }
             public string AppLog { get; set; } 
             public string Method { get; set; }
         }
-        // Singleton, usado para acesso as funcionalidade dessa classe. Garante que só exista uma instancia por aplicação.
+        // Singleton, used to acess funcionalities  of this class. Ensure that there's only one instance per application
         private static LogWriter instance;
         public static LogWriter Instance
         {
@@ -27,38 +27,39 @@
                 return instance;
             }
         }
-        // final da declaração do singleton
+        // End Singleton declaration
 
         private Queue<LogEntry> LogPool;
         private Thread thread;
-        //Armazena a pasta atual da aplicação
+        //Store the local folder  of the application
         private string path = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase).Replace("file:\\", "");
 
         public LogWriter()
         {
-            // Cria a fila de entradas de log
+            // Creates queue of log entrys
             LogPool = new Queue<LogEntry>();
-            // Cria a thread responsável por gravar log no arquivo  
+            // Creates saving responsible's thread in the arquive
             thread = new Thread(new ThreadStart(WriteOnDisk));
 
             thread.Start();
         }
-        // Tarefa a ser executada pela thread
+        // Task to be executedby thread
         private void WriteOnDisk()
         {
-            while (true) // executa infinitamente
+            while (true) // execute indefinitely
             {
-                if (LogPool.Count > 0) // verfica se existem logs para gravar
+                if (LogPool.Count > 0) // check if there is log to save
                 {
-                    LogEntry entry = LogPool.Dequeue(); // retira a entrada de log da fila.
-                    //Formata o caminho para o armazenamento do arquivo de log
+                    LogEntry entry = LogPool.Dequeue(); // Clear log queue 
+                    // Format saving path of log file
                     string finalPath = Path.Combine(path, "Logs",entry.AppLog + "application" + ".log");
-                    //cria a pasta caso ela não exista.
+                    // Creates directory if doesn't exist
                     if (!Directory.Exists(Path.GetDirectoryName(finalPath)))
                         Directory.CreateDirectory(Path.GetDirectoryName(finalPath));
 
-                    //grava o log
+                    // Save log
                     using (StreamWriter sw = File.AppendText(finalPath))
+                    // Format log message 
                     {
                         sw.WriteLine(string.Format("[{0}] [{1}] {2}", entry.Date, entry.Message, entry.Method, entry.AppLog));
                     }
@@ -68,9 +69,9 @@
 
         public void WriteLog(string message, string method, string applog)
         {
-            //Cria um objeto do tipo LogEntry
+            // Create an object LogEntry
             LogEntry entry = new LogEntry { Date = DateTime.Now, Method = method, Message = message };
-            //Adiciona entrada na fila
+            //Add entry to the queue
             LogPool.Enqueue(entry);
         }
     }
